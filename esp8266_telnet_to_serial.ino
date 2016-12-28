@@ -1,11 +1,10 @@
 #include <ESP8266WiFi.h>
 
-//how many clients should be able to telnet to this ESP8266
 const char* ssid = "********";
 const char* password = "********";
 
 WiFiServer server(23);
-WiFiClient serverClient;
+WiFiClient telnet;
 
 void setup() {
   WiFi.begin(ssid, password);
@@ -18,28 +17,25 @@ void setup() {
 
 void loop() {
   if (server.hasClient()){
-    if (!serverClient || !serverClient.connected()){
-      if(serverClient){
-        serverClient.stop();
-      }
-      serverClient = server.available();
+    if (!telnet || !telnet.connected()){
+      if(telnet) telnet.stop();
+      telnet = server.available();
     }
     else{
-      WiFiClient serverClient = server.available();
-      serverClient.stop();
+      server.available().stop();
     }
   }
-  
-  if (serverClient && serverClient.connected() && serverClient.available()){
-    while(serverClient.available()){
-      Serial.write(serverClient.read());
+
+  if (telnet && telnet.connected() && telnet.available()){
+    while(telnet.available()){
+      Serial.write(telnet.read());
     }
   }
 
   if (Serial.available()){
-    if (serverClient && serverClient.connected()){
+    if (telnet && telnet.connected()){
       while(Serial.available()){
-        serverClient.write(Serial.read());
+        telnet.write(Serial.read());
       }
     }
   }
